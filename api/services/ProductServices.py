@@ -1,6 +1,7 @@
+import int
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from api.infra.config.database import engine
+from api.infra.repositories.Product_repository import ProductRepository
 
 
 class ProductService:
@@ -8,26 +9,18 @@ class ProductService:
         self.db_session = db_session
 
     def get_product_by_id(self, product_id: int):
-        result = self.db_session.execute(text("SELECT * FROM Products WHERE id = :product_id"), {"product_id": product_id})
-        product = result.fetchone()
-        print(f"Resultado da consultaaaa: {product}")
-        if product is not None:
-            column_names = result.keys()
-            return dict(zip(column_names, product))
-        return None
+        repository = ProductRepository(self.db_session)
+        return repository.get_by_id(product_id)
+
     
     def get_all_products(self):
-        result = self.db_session.execute(text("SELECT * FROM Products"))
-        products = result.mappings().all()
-        return products
+        repository = ProductRepository(self.db_session)
+        return repository.get_all()
+
        
     def insert_product(self, name: str, quantity: int, price: float):
-        query = text("""
-            INSERT INTO Products (name, quantity, price)
-            VALUES (:name, :quantity, :price)
-        """)
-        self.db_session.execute(query, {"name": name, "quantity": quantity, "price": price})
-        self.db_session.commit()
+        repository = ProductRepository(self.db_session)
+        return repository.insert_procut(name, quantity, price)
 
     def delete_product(self, product_id: int):
         self.db_session.execute(text("DELETE FROM Products where id = :product_id"), {"product_id": product_id})
